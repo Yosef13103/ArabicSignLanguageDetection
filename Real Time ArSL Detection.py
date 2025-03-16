@@ -235,10 +235,15 @@ def handle_key_events(key, state):
 
 # Play detected word using Google Text-to-Speech
 def play_detected_word(word):
+    # Create folder to store mp3 files if not already exists
+    if not os.path.exists("Detected_Words/"):
+        os.makedirs("Detected_Words/")
+
     print("Playing detected text...")
+    current_time = time.time()
     tts = gTTS(text=word, lang='ar')
-    tts.save("detected_text.mp3")
-    os.system("start detected_text.mp3")
+    tts.save(f"Detected_Words/{current_time}.mp3")
+    os.system(f"start Detected_Words/{current_time}.mp3")
 
 # Main function for real-time detection
 def real_time_detection():
@@ -246,8 +251,11 @@ def real_time_detection():
     state = initialize_state()
     print("State initialized.")
     print("Opening video capture...")
-    capture = cv2.VideoCapture(0)
-    print("Video capture opened.")
+    try:
+        capture = cv2.VideoCapture(0)
+        print("Video capture opened.")
+    except:
+        print("Error opening video capture. Make sure a camera is connected and working properly.")
 
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
