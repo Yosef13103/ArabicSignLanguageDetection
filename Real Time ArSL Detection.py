@@ -4,8 +4,14 @@ from ultralytics import YOLO
 from gtts import gTTS
 from collections import deque
 from PIL import Image, ImageDraw, ImageFont
+import datetime
 
-print("Starting program...")
+def print_with_timestamp(*args, **kwargs):
+    timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+    print(timestamp, *args, **kwargs)
+
+
+print_with_timestamp("Starting program...")
 
 yolo11_raasld = 'runs/train/yolov11_raasld/weights/best.pt'
 
@@ -48,7 +54,7 @@ model_type = [{'name': 'yolo11_raasld', 'model': yolo11_raasld, 'letters': ARABI
 model_index = 0
 
 def initialize_model():
-    print("Initializing Model...")
+    print_with_timestamp("Initializing Model...")
     model = YOLO(model_type[model_index]['model'])
     model.conf = 0.60
     return model
@@ -120,10 +126,10 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
 
 # Setup window for displaying frames
 def setup_window():
-    print("Setting up window...")
+    print_with_timestamp("Setting up window...")
     cv2.namedWindow('ArSL Detection', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('ArSL Detection', 1280, 920)
-    print("Window setup complete.")
+    print_with_timestamp("Window setup complete.")
 
 # Process detection results and return highest confidence detection
 def process_detection(frame, results, model):
@@ -239,7 +245,7 @@ def play_detected_word(word):
     if not os.path.exists("Detected_Words/"):
         os.makedirs("Detected_Words/")
 
-    print("Playing detected text...")
+    print_with_timestamp("Playing detected text...")
     current_time = time.time()
     tts = gTTS(text=word, lang='ar')
     tts.save(f"Detected_Words/{current_time}.mp3")
@@ -247,20 +253,20 @@ def play_detected_word(word):
 
 # Main function for real-time detection
 def real_time_detection():
-    print("Initializing state...")
+    print_with_timestamp("Initializing state...")
     state = initialize_state()
-    print("State initialized.")
-    print("Opening video capture...")
+    print_with_timestamp("State initialized.")
+    print_with_timestamp("Opening video capture...")
     try:
         capture = cv2.VideoCapture(0)
-        print("Video capture opened.")
+        print_with_timestamp("Video capture opened.")
     except:
-        print("Error opening video capture. Make sure a camera is connected and working properly.")
+        print_with_timestamp("Error opening video capture. Make sure a camera is connected and working properly.")
 
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     capture.set(cv2.CAP_PROP_FPS, 60)
-    print("Video resolution set to 1280x720, FPS to 60.")
+    print_with_timestamp("Video resolution set to 1280x720, FPS to 60.")
 
     setup_window()
 
@@ -303,5 +309,5 @@ if __name__ == "__main__":
     try:
         real_time_detection()
     except KeyboardInterrupt:
-        print("\nExiting gracefully...")
+        print_with_timestamp("\nExiting gracefully...")
         cv2.destroyAllWindows()
