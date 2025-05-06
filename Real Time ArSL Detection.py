@@ -5,6 +5,9 @@ from gtts import gTTS
 from collections import deque
 from PIL import Image, ImageDraw, ImageFont
 import datetime
+import arabic_reshaper
+from bidi.algorithm import get_display
+
 
 def print_with_timestamp(*args, **kwargs):
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
@@ -83,13 +86,20 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
     except:
         font = ImageFont.truetype("C:/Windows/Fonts/arialuni.ttf", size=int(30 * scale))
 
-    # Handle text wrapping
+    # Handle RTL reshaping if Arabic is detected
+    def process_line(line):
+        if any('\u0600' <= c <= '\u06FF' or '\u0750' <= c <= '\u077F' for c in line):
+            reshaped_text = arabic_reshaper.reshape(line)
+            return get_display(reshaped_text)
+        return line
+
     if max_width:
         lines = []
         words = text.split(' ')
         line = []
         for word in words:
             test_line = ' '.join(line + [word])
+            test_line = process_line(test_line)
             text_size = draw.textbbox((0, 0), test_line, font=font)
             text_width = text_size[2] - text_size[0]
             if text_width <= max_width:
@@ -103,6 +113,7 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
 
     x, y = position
     for line in lines:
+        line = process_line(line)
         text_size = draw.textbbox((0, 0), line, font=font)
         text_width = text_size[2] - text_size[0]
         text_height = text_size[3] - text_size[1]
@@ -120,9 +131,10 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
                      -1)
 
         draw.text((x, y), line, font=font, fill=color[::-1])
-        y += text_height + 10  # Move to the next line
+        y += text_height + 10
 
     frame[:] = np.array(img_pil)
+
 
 # Setup window for displaying frames
 def setup_window():
