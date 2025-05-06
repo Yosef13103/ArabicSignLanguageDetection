@@ -77,7 +77,7 @@ def initialize_state():
     }
 
 # Draw text on frame in both Arabic and English
-def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left', max_width=None):
+def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left', max_width=None, already_reshaped=False):
     img_pil = Image.fromarray(frame)
     draw = ImageDraw.Draw(img_pil)
 
@@ -86,8 +86,9 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
     except:
         font = ImageFont.load_default()
 
-    # Handle RTL reshaping if Arabic is detected
     def process_line(line):
+        if already_reshaped:
+            return line
         if any('\u0600' <= c <= '\u06FF' or '\u0750' <= c <= '\u077F' for c in line):
             reshaped_text = arabic_reshaper.reshape(line)
             return get_display(reshaped_text)
@@ -123,18 +124,17 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
         elif align == 'center':
             x = position[0] - text_width // 2
 
-        # Draw background with padding
+        # Draw background
         cv2.rectangle(frame,
-                     (x-5, y - text_height - 5),
-                     (x + text_width+5, y + 5),
-                     (0, 0, 0),
-                     -1)
+                      (x - 5, y - text_height - 5),
+                      (x + text_width + 5, y + 5),
+                      (0, 0, 0),
+                      -1)
 
         draw.text((x, y), line, font=font, fill=color[::-1])
         y += text_height + 10
 
     frame[:] = np.array(img_pil)
-
 
 # Setup window for displaying frames
 def setup_window():
@@ -218,14 +218,15 @@ def create_info_panel(width, state, time_left):
 
     # Arabic word (right-aligned) - reverse for correct RTL display
     arabic_word = ''.join(state['detected_letters'])
-    reshaped = arabic_reshaper.reshape(f"الكلمة: {arabic_word}")
-    arabic_text = get_display(reshaped)
+    reshaped_word = arabic_reshaper.reshape(arabic_word)
+    bidi_word = get_display(reshaped_word)
+    arabic_text = f"الكلمة: {bidi_word}"
 
     # English letters (left-aligned)
     english_text = ' '.join(state['english_letters'])
 
     # Draw text
-    draw_text(info_panel, arabic_text, (width - 10, 40), scale=1.2, align='right', max_width=width - 20)
+    draw_text(info_panel, arabic_text, (width - 10, 40), scale=1.2, align='right', max_width=width - 20, already_reshaped=True)
     draw_text(info_panel, english_text, (10, 80), scale=1.2, align='left', max_width=width - 20)
 
     # Status and controls
