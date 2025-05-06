@@ -136,6 +136,7 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
 
     frame[:] = np.array(img_pil)
 
+
 # Setup window for displaying frames
 def setup_window():
     print_with_timestamp("Setting up window...")
@@ -217,10 +218,11 @@ def create_info_panel(width, state, time_left):
     info_panel = np.zeros((200, width, 3), dtype=np.uint8)
 
     # Arabic word (right-aligned) - reverse for correct RTL display
-    arabic_word = ''.join(state['detected_letters'])
-    reshaped_word = arabic_reshaper.reshape(arabic_word)
-    bidi_word = get_display(reshaped_word)
-    arabic_text = f"الكلمة: {bidi_word}"
+    arabic_word = ''.join(state['detected_letters'])  # Raw user input
+    full_sentence = f"الكلمة: {arabic_word}"         # Combine label + input (in logical order)
+    reshaped = arabic_reshaper.reshape(full_sentence)  # Join Arabic letters
+    arabic_text = get_display(reshaped)                # Apply proper RTL flow
+
 
     # English letters (left-aligned)
     english_text = ' '.join(state['english_letters'])
