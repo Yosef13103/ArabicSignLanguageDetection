@@ -82,9 +82,9 @@ def draw_text(frame, text, position, scale=0.7, color=(0, 255, 0), align='left',
     draw = ImageDraw.Draw(img_pil)
 
     try:
-        font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", size=int(30 * scale))
+        font = ImageFont.truetype("C:/Windows/Fonts/tradbdo.ttf", size=int(30 * scale))
     except:
-        font = ImageFont.truetype("C:/Windows/Fonts/arialuni.ttf", size=int(30 * scale))
+        font = ImageFont.load_default()
 
     # Handle RTL reshaping if Arabic is detected
     def process_line(line):
@@ -217,8 +217,9 @@ def create_info_panel(width, state, time_left):
     info_panel = np.zeros((200, width, 3), dtype=np.uint8)
 
     # Arabic word (right-aligned) - reverse for correct RTL display
-    arabic_word = ''.join((state['detected_letters']))  # Reverse here for RTL
-    arabic_text = f"الكلمة: {arabic_word}"
+    arabic_word = ''.join(state['detected_letters'])
+    reshaped = arabic_reshaper.reshape(f"الكلمة: {arabic_word}")
+    arabic_text = get_display(reshaped)
 
     # English letters (left-aligned)
     english_text = ' '.join(state['english_letters'])
